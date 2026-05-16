@@ -1,0 +1,79 @@
+// Licensed under the Apache License, Version 2.0
+// Copyright 2025, Mindful Software LLC, All rights reserved.
+
+import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry/testing.dart';
+import 'package:otel_gcp_cloud_functions/otel_gcp_cloud_functions.dart';
+import 'package:test/test.dart';
+
+void main() {
+  late TestHarness harness;
+  late InMemorySpanExporter spans;
+
+  setUpAll(() async {
+    harness = await maybeInitializeOtelForTest(
+      serviceName: 'otel_gcp_cloud_functions-test',
+    );
+    spans = harness.spans;
+  });
+
+  setUp(() => harness.clear());
+
+  Map<String, Object> attrsOf(Span s) =>
+      {for (final a in s.attributes.toList()) a.key: a.value};
+
+  test('invoke.eventarc records trigger + runtime + cold start', () async {
+    await tracedGcpCloudFunctions<String>(
+      operation: 'invoke.eventarc',
+      invoke: () async => const GcpCloudFunctionsCallResult(
+        value: 'ok',
+        result: GcpCloudFunctionsResult(
+          generation: 'gen2',
+          functionName: 'process-upload',
+          runtime: 'nodejs20',
+          triggerKind: 'eventarc',
+          eventArcTriggerEvent: 'google.cloud.storage.object.v1.finalized',
+          memoryMb: 256,
+          coldStart: true,
+          durationMs: 480,
+          functionExecutionResult: 'ok',
+        ),
+      ),
+    );
+    final a = attrsOf(
+      spans.findSpanByName('gcp_cloud_functions invoke.eventarc')!,
+    );
+    expect(a['gcp_cloud_functions.runtime'], 'nodejs20');
+    expect(
+      a['gcp_cloud_functions.eventarc.event_type'],
+      'google.cloud.storage.object.v1.finalized',
+    );
+    expect(a['gcp_cloud_functions.cold_start'], true);
+  });
+
+  test('out_of_memory result sets span error', () async {
+    await tracedGcpCloudFunctions<String>(
+      operation: 'invoke.http',
+      invoke: () async => const GcpCloudFunctionsCallResult(
+        value: 'ok',
+        result: GcpCloudFunctionsResult(
+          functionExecutionResult: 'out_of_memory',
+        ),
+      ),
+    );
+    expect(
+      spans.findSpanByName('gcp_cloud_functions invoke.http')!.status,
+      SpanStatusCode.Error,
+    );
+  });
+
+  test('suppression skips spans', () async {
+    await runWithoutGcpCloudFunctionsInstrumentationAsync(() async {
+      await tracedGcpCloudFunctions<String>(
+        operation: 'functions.list',
+        invoke: () async => const GcpCloudFunctionsCallResult(value: 'v'),
+      );
+    });
+    expect(spans.findSpansStartingWith('gcp_cloud_functions '), isEmpty);
+  });
+}
