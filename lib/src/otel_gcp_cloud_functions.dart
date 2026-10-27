@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_gcp_cloud_functions_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_gcp_cloud_functions';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class GcpCloudFunctionsResult {
+  /// Creates a result.
   const GcpCloudFunctionsResult({
     this.project,
     this.region,
@@ -87,8 +88,13 @@ class GcpCloudFunctionsResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class GcpCloudFunctionsCallResult<T> {
+  /// Creates a call result.
   const GcpCloudFunctionsCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final GcpCloudFunctionsResult? result;
 }
@@ -117,7 +123,7 @@ Future<T> tracedGcpCloudFunctions<T>({
   final span = _tracer().startSpan(
     'gcp_cloud_functions $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
@@ -125,121 +131,121 @@ Future<T> tracedGcpCloudFunctions<T>({
       final res = r.result!;
       final extras = <Attribute<Object>>[];
       if (res.project != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.project',
           res.project!,
         ));
       }
       if (res.region != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.region',
           res.region!,
         ));
       }
       if (res.generation != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.generation',
           res.generation!,
         ));
       }
       if (res.functionName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.function.name',
           res.functionName!,
         ));
       }
       if (res.runtime != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.runtime',
           res.runtime!,
         ));
       }
       if (res.entryPoint != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.entry_point',
           res.entryPoint!,
         ));
       }
       if (res.triggerKind != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.trigger.kind',
           res.triggerKind!,
         ));
       }
       if (res.eventArcTriggerEvent != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.eventarc.event_type',
           res.eventArcTriggerEvent!,
         ));
       }
       if (res.cpu != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.cpu',
           res.cpu!,
         ));
       }
       if (res.memoryMb != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'gcp_cloud_functions.memory_mb',
           res.memoryMb!,
         ));
       }
       if (res.timeoutSec != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'gcp_cloud_functions.timeout_sec',
           res.timeoutSec!,
         ));
       }
       if (res.minInstances != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'gcp_cloud_functions.min_instances',
           res.minInstances!,
         ));
       }
       if (res.maxInstances != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'gcp_cloud_functions.max_instances',
           res.maxInstances!,
         ));
       }
       if (res.concurrency != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'gcp_cloud_functions.concurrency',
           res.concurrency!,
         ));
       }
       if (res.serviceAccountEmail != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.service_account.email',
           res.serviceAccountEmail!,
         ));
       }
       if (res.invocationId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.invocation.id',
           res.invocationId!,
         ));
       }
       if (res.executionId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.execution.id',
           res.executionId!,
         ));
       }
       if (res.coldStart != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'gcp_cloud_functions.cold_start',
           res.coldStart!,
         ));
       }
       if (res.durationMs != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'gcp_cloud_functions.duration_ms',
           res.durationMs!,
         ));
       }
       if (res.functionExecutionResult != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.execution.result',
           res.functionExecutionResult!,
         ));
@@ -251,7 +257,7 @@ Future<T> tracedGcpCloudFunctions<T>({
         }
       }
       if (res.errorCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.error.code',
           res.errorCode!,
         ));
@@ -261,13 +267,13 @@ Future<T> tracedGcpCloudFunctions<T>({
         );
       }
       if (res.errorMessage != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'gcp_cloud_functions.error.message',
           res.errorMessage!,
         ));
       }
       if (res.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           res.statusCode!,
         ));
@@ -278,13 +284,13 @@ Future<T> tracedGcpCloudFunctions<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
